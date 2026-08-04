@@ -1,0 +1,28 @@
+.container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #ecefe6; /* Material M3 Surface Variant */
+  border-radius: 28px; /* M3 Shape Full */
+  padding: 0 16px;
+  height: 48px;
+  width: 100%;
+  max-width: 320px;
+  transition: background-color 0.2s;
+}
+.container:focus-within {
+  background-color: #e1e3db;
+  box-shadow: 0 0 0 2px #4d73f8;
+}
+.icon {
+  color: #43493e;
+  margin-right: 12px;
+}
+.input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  color: #1a1c18;
+  width: 100%;
+}

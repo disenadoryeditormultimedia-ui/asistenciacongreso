@@ -1,0 +1,130 @@
+/* ==========================================================
+   1. ESTILOS BASE (Para PC, Laptops y pantallas grandes)
+   ========================================================== */
+.CardCounter {
+  width: 100%;
+  max-width: 400px; /* Reducido de 500px a 400px para que se vea más estilizado */
+  height: auto;
+  border-radius: 14px;
+  background-color: white;
+  padding: 18px 20px; /* Ajuste para que sea más compacto */
+  margin: 0 auto 24px auto; /* Reducido el margen inferior */
+  box-shadow: 10px 10px 15px -8px rgba(0,0,0,0.2); 
+  overscroll-behavior: none;
+}
+
+.icono {
+  margin: 0 auto 8px auto;
+  text-align: center;
+  align-self: center;
+  display: flex;
+  justify-content: center;
+}
+
+.CardCounter h2 {
+  text-align: center;
+  margin: 0;
+  font-size: 1.25rem; /* Un poco más pequeño y elegante */
+  color: #1e293b;
+}
+
+.gridSalas {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 12px; /* Espacio más controlado entre tarjetas */
+  flex-wrap: wrap;
+}
+
+.contSalas {
+  /* Tamaño elegante en PC */
+  width: calc(33.33% - 8px); 
+  min-width: 130px; /* Evita que se encojan de forma fea */
+  max-width: 180px; /* Limita el crecimiento desmedido */
+  height: 110px; /* Reducido para que no ocupe un espacio exagerado */
+  border-radius: 10px;
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.contSalas:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 12px -3px rgba(0, 0, 0, 0.05);
+}
+
+.contSalas span {
+  font-size: 12px; /* Letras un poco más compactas */
+  color: #64748b;
+  font-weight: 500;
+  text-align: center;
+  padding: 0 5px;
+}
+
+.contSalas h3 {
+  margin: 4px 0 0 0;
+  font-size: 24px; /* Tamaño legible sin ser tosco */
+  color: #0f172a;
+  font-weight: 700;
+}
+
+
+/* ==========================================================
+   2. TABLETS & PANTALLAS DE IPAD (Menor a 1024px / iPad en Horizontal)
+   ========================================================== */
+@media (max-width: 1024px) {
+  .CardCounter {
+    max-width: 350px; /* Más compacto en iPad */
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .gridSalas {
+    gap: 10px;
+  }
+
+  .contSalas {
+    /* Mantenemos 3 columnas pero más compactas */
+    width: calc(33.33% - 7px);
+    height: 100px;
+  }
+
+  .contSalas h3 {
+    font-size: 22px;
+  }
+}
+
+
+/* ==========================================================
+   3. MÓVILES (Celulares y Tablets en Vertical - menor a 768px)
+   ========================================================== */
+@media (max-width: 768px) {
+  .CardCounter {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .gridSalas {
+    gap: 8px;
+  }
+
+  .contSalas {
+    /* En pantallas móviles se acomodan en 2 columnas perfectas en vez de 1 vertical gigante */
+    width: calc(50% - 4px); 
+    height: 90px;
+  }
+
+  .contSalas span {
+    font-size: 11px;
+  }
+
+  .contSalas h3 {
+    font-size: 20px;
+    margin-top: 2px;
+  }
+}

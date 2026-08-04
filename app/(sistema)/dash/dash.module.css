@@ -1,0 +1,102 @@
+/* ==========================================================
+   1. CONTENEDOR PRINCIPAL DEL DASHBOARD (Con espacio para el Nav)
+   ========================================================== */
+.contDash {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 40px;
+  /* 👈 Clave: Deja el hueco para que la barra lateral fija de 250px no tape el dashboard */
+  margin-left: 0px; 
+  /* Asegura que el ancho del dashboard sea el restante de la pantalla */
+  width: calc(100% - 250px); 
+}
+
+/* Cabecera: Título + Switch */
+.headerDashboard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap; /* Permite que el switch baje si la pantalla es muy chica */
+  gap: 15px;
+}
+
+.TituloResumen {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1e293b; /* Slate 800 */
+  margin: 0;
+}
+
+/* Contenedor de las dos tarjetas principales */
+.ContenedorGenTotalYPresen {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  gap: 40px; /* Ajustado para un mejor equilibrio visual */
+  margin-bottom: 40px;
+  box-sizing: border-box;
+}
+
+/* ==========================================================
+   2. TABLETS / IPAD (Menor a 1200px)
+   ========================================================== */
+@media (max-width: 1500px) {
+  .contDash {
+    width: 100%;
+    /* Ajustamos el margen porque la barra lateral se mantiene vertical */
+    margin-left: 0px; 
+    padding: 24px;
+  }
+
+  .ContenedorGenTotalYPresen {
+    gap: 20px; /* Reducimos la separación para pantallas de tablets */
+  }
+}
+
+/* ==========================================================
+   2. TABLETS / IPAD (Menor a 1024px)
+   ========================================================== */
+@media (max-width: 1024px) {
+  .contDash {
+    width: 100%;
+    /* Ajustamos el margen porque la barra lateral se mantiene vertical */
+    margin-left: 0px; 
+    padding: 24px;
+  }
+
+  .ContenedorGenTotalYPresen {
+    gap: 20px; /* Reducimos la separación para pantallas de tablets */
+  }
+}
+
+
+/* ==========================================================
+   3. MÓVILES (Menor a 768px / 480px)
+   ========================================================== */
+@media (max-width: 768px) {
+  .ContenedorGenTotalYPresen {
+    flex-direction: column; /* Tarjetas una abajo de la otra */
+    align-items: stretch; /* Se estiran para ocupar el ancho disponible */
+    gap: 20px;
+  }
+}
+
+/* En teléfonos muy chicos, el menú pasa a estar arriba, así que liberamos el margen izquierdo */
+@media (max-width: 480px) {
+  .contDash {
+    margin-left: 0; /* 👈 Eliminamos el espacio lateral porque el menú ya está arriba */
+    width: 100%;
+    padding: 16px 12px;
+  }
+
+  .headerDashboard {
+    flex-direction: column;
+    align-items: stretch; /* El título y el switch ocupan todo el ancho */
+    text-align: center;
+  }
+
+  .TituloResumen {
+    font-size: 1.5rem;
+  }
+}

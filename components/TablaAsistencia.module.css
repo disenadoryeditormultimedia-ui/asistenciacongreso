@@ -1,0 +1,208 @@
+/* ==========================================================
+   0. AJUSTE DE CONTENEDOR (Evita que el menú se despegue)
+   ========================================================== */
+.contenedorAsistencia {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 40px;
+  
+  /* 👈 Clave: Deja el hueco exacto para que la barra lateral de 250px no tape la tabla */
+  margin-left: 250px; 
+}
+
+/* ==========================================================
+   1. ESTILOS BASE (Para PC y Laptops)
+   ========================================================== */
+.mainCard {
+  background-color: #ffffff;
+  border-radius: 16px; /* Material M3 Standard */
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05), 0px 1px 2px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden; /* Mantiene las esquinas redondeadas */
+  border: 1px solid #e1e3db;
+}
+
+.actionsBar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background-color: #fffbfe;
+  border-bottom: 1px solid #e1e3db;
+}
+
+.filtersGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+/* --- CONTROL TOTAL DEL TAMAÑO PARA ELIMINAR EL SCROLL EN EL CARD --- */
+.tableResponsiveWrapper {
+  width: 100%;
+  background-color: #ffffff;
+  overflow-x: auto; /* Activa scroll horizontal si la pantalla es más angosta que la tabla */
+  -webkit-overflow-scrolling: touch; /* Scroll ultra suave en iOS/iPad */
+}
+
+/* Forzamos que la cabecera y las filas midan lo mismo y tengan un mínimo de ancho */
+.tableHeader,
+.tableRow {
+  display: grid;
+  grid-template-columns: 2.5fr 1.5fr 1.2fr 1.2fr 1fr 1.2fr;
+  min-width: 800px; /* Evita que las 6 columnas colapsen en pantallas chicas */
+  box-sizing: border-box;
+}
+
+.tableHeader {
+  padding: 14px 24px;
+  background-color: #f3f4f6;
+  font-size: 13px;
+  font-weight: 600;
+  color: #43493e;
+  border-bottom: 1px solid #e1e3db;
+}
+
+/* Altura estricta calculada para exactamente 5 filas de 64px */
+.tableBodyFixed {
+  min-height: 320px; 
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Muestra scroll vertical sutil si se añade una sexta fila */
+}
+
+.tableRow {
+  padding: 0 24px;
+  height: 64px; /* Altura fija por fila estándar M3 */
+  align-items: center;
+  font-size: 14px;
+  color: #1a1c18;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Asegura que los textos largos no rompan la estructura */
+.tableRow > div {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tableRow:hover {
+  background-color: #f7f9ff;
+}
+
+.boldText {
+  font-weight: 500;
+  color: #1c1b1f;
+}
+
+.centerCell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Botón de Salida Material Design M3 Tone */
+.btnSalida {
+  background-color: #4d73f8;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.btnSalida:hover {
+  background-color: #3b5ed1;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.3);
+}
+
+.timeTag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f1f5f9;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-weight: 600;
+  font-size: 13px;
+  width: fit-content;
+}
+
+.btnResetTime {
+  background-color: #ffdad7;
+  color: #410002;
+  border: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  transition: background-color 0.2s;
+}
+
+.btnResetTime:hover {
+  background-color: #ffb4ab;
+}
+
+.emptyState {
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #74796e;
+  font-size: 14px;
+}
+
+
+/* ==========================================================
+   2. RESPONSIVE SUTIL (Tablets, iPads y Móviles)
+   ========================================================== */
+@media (max-width: 1024px) {
+  .actionsBar {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  .filtersGroup {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Apilamos los filtros para que no queden cortados de lado */
+  .actionsBar {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .filtersGroup {
+    flex-direction: column;
+    align-items: stretch; /* Los inputs/selects tomarán el ancho disponible */
+    gap: 10px;
+  }
+  
+  /* Reducimos ligeramente el padding interno de las celdas en dispositivos pequeños */
+  .tableHeader, 
+  .tableRow {
+    padding: 0 16px;
+  }
+}
+
+/* 👇 Si el celular gira a vertical (menos de 480px) quitamos el margen del menú porque este se posicionará arriba */
+@media (max-width: 480px) {
+  .contenedorAsistencia {
+    margin-left: 0; 
+    padding: 16px 10px;
+  }
+}

@@ -1,0 +1,56 @@
+.overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background-color: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(6px);
+  display: flex; justify-content: center; align-items: center; z-index: 9999;
+}
+.dialog {
+  background-color: #fffbfe; /* M3 Surface */
+  border-radius: 28px; /* M3 Large Shape */
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+.iconContainer {
+  margin-bottom: 16px;
+  display: inline-flex;
+  padding: 12px;
+  background-color: #ffdad7;
+  border-radius: 50%;
+}
+.title {
+  font-size: 24px;
+  color: #1c1b1f;
+  margin-bottom: 12px;
+}
+.description {
+  font-size: 14px;
+  color: #49454f;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+.btnCancel {
+  padding: 10px 24px;
+  background: transparent;
+  border: none;
+  color: #4d73f8;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 100px;
+}
+.btnConfirm {
+  padding: 10px 24px;
+  background-color: #ba1a1a; /* M3 Error Color */
+  border: none;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 100px;
+}

@@ -1,0 +1,99 @@
+/* ==========================================================
+   1. CONTENEDOR DINÁMICO (Con espacio reservado para el Nav)
+   ========================================================== */
+.contDinamico {
+  width: 100%;
+  /* 👈 Clave: Desplaza el formulario para que no se meta debajo de la barra lateral */
+  margin-left: 0px; 
+  padding: 40px 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra el formulario de forma elegante en su área */
+  min-height: 80vh;
+}
+
+.headerSeccion {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.headerSeccion h1 {
+  font-size: 32px;
+  color: #1a1c18;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.subtitulo {
+  font-size: 16px;
+  color: #43493e;
+  margin: 0;
+}
+
+.contenedorFormulario {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 48px; /* Espacio extra abajo para que respire en móviles */
+}
+
+/* ==========================================================
+   3. AJUSTES RESPONSIVE (Tablets y iPads)
+   ========================================================== */
+@media (max-width: 1181px) {
+  .contDinamico {
+    width: 100%;
+    /* Mantiene el espacio del menú que sigue visible en el lateral */
+    margin-left: 0px; 
+    padding: 30px 15px;
+  
+  }
+
+  .headerSeccion h1 {
+    font-size: 28px;
+  }
+}
+
+/* ==========================================================
+   2. AJUSTES RESPONSIVE (Tablets y iPads)
+   ========================================================== */
+@media (max-width: 1024px) {
+  .contDinamico {
+    width: 100%;
+    /* Mantiene el espacio del menú que sigue visible en el lateral */
+    margin-left: 0px; 
+    padding: 30px 15px;
+  }
+
+  .headerSeccion h1 {
+    font-size: 28px;
+  }
+}
+
+
+
+
+/* ==========================================================
+   3. MÓVILES (Menor a 480px)
+   Liberamos el espacio lateral izquierdo porque el menú pasa arriba
+   ========================================================== */
+@media (max-width: 480px) {
+  .contDinamico {
+    margin-left: 0; /* 👈 Eliminamos el espacio lateral del menú */
+    width: 100%;    /* El formulario ahora aprovecha todo el ancho del celular */
+    padding: 20px 12px;
+  }
+
+  .headerSeccion {
+    margin-bottom: 24px;
+  }
+
+  .headerSeccion h1 {
+    font-size: 24px;
+  }
+
+  .subtitulo {
+    font-size: 14px;
+  }
+}

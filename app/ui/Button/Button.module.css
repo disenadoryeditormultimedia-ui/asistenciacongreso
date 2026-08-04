@@ -1,0 +1,28 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  height: 40px;
+  border-radius: 100px; /* M3 Pill shape */
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: box-shadow 0.2s, background-color 0.2s;
+}
+.filled {
+  background-color: #217346; /* Color Excel corporativo */
+  color: #ffffff;
+}
+.filled:hover {
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  background-color: #185332;
+}
+.tonal {
+  background-color: #e1e3db; /* M3 Secondary Container */
+  color: #43493e;
+}
+.tonal:hover {
+  background-color: #d2d5cc;
+}

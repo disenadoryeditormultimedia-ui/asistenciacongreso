@@ -1,26 +1,131 @@
-@import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ==========================================================
+   1. CONFIGURACIÓN BASE DEL NAVEGADOR (Para toda la app)
+   ========================================================== */
+html, body {
+  background-color: #EFF4FF;
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  overscroll-behavior: none;
+  height: 100dvh; /* Alto dinámico para navegadores móviles */
+  width: 100vw;
+  overflow: hidden;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ==========================================================
+   2. ESTRUCTURA GLOBAL DEL DASHBOARD
+   ========================================================== */
+.mainLayout {
+  display: flex;
+  width: 100vw;
+  height: 100dvh;
+  align-items: stretch; 
+  background-color: #EFF4FF; 
+  overflow: hidden; 
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+.contentArea {
+  flex: 1; 
+  height: 100%;
+  overflow-y: auto; /* Solo el área derecha tendrá scroll */
+  padding: 40px;
+  box-sizing: border-box;
+  margin-left: 250px; /* Espacio para el nav de 250px */
+}
+
+/* ==========================================================
+   3. RESPONSIVE SUTIL Y PANTALLAS MEDIANAS
+   ========================================================== */
+@media (max-width: 768px) {
+  .contentArea {
+    padding: 24px 15px;
+    margin-left: 200px; 
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (max-width: 480px) {
+  .contentArea {
+    padding: 16px 10px;
+    margin-left: 200px;
+  }
+}
+
+/* ==========================================================
+   4. CABECERA, SWITCH Y COMPONENTES GLOBALES
+   ========================================================== */
+h1 {
+  text-align: center;
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.TituloResumen {
+  margin-top: 24px; 
+}
+
+/* Switch de días */
+.switchContenedor {
+  padding: 8px 12px;
+  background-color: #E5EDFF;
+  border-radius: 18px;
+  justify-content: space-around;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0px 4px 6px -1px rgba(0,0,0,0.08);
+}
+
+.btnSwitch {
+  width: 70px;
+  height: 36px;
+  color: black;
+  background-color: #E5EDFF;
+  border: none;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnSwitch.activo {
+  background-color: #4D73F8;
+  color: white;
+}
+
+/* El contenedor dinámico principal */
+.contDinamico {
+  width: 95%;
+  max-width: 1200px;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  margin: 24px auto 0 auto;
+  position: relative;
+}
+
+.ContGenTabla {
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ==========================================================
+   5. ROTACIÓN AUTOMÁTICA EN PANTALLAS VERTICALES
+   ========================================================== */
+@media screen and (orientation: portrait) {
+  /* Desactivamos la advertencia para forzar el uso horizontal */
+  .advertenciaOrientacion {
+    display: none !important;
+  }
+
+  /* Rotamos el contenedor principal 90 grados y reajustamos proporciones */
+  .mainLayout {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100dvh !important;
+    height: 100vw !important;
+    transform: translate(-50%, -50%) rotate(90deg);
+    transform-origin: center center;
+  }
 }

@@ -1,0 +1,128 @@
+/* ==========================================================
+   1. ESTILOS BASE (Para PC, Laptops y pantallas grandes)
+   ========================================================== */
+.CardCounter {
+  width: 100%;
+  max-width: 500px; /* Evita que se estire demasiado en pantallas gigantes */
+  height: auto;
+  border-radius: 16px;
+  background-color: white;
+  padding: 24px;
+  display: flex;
+  flex-direction: column; /* Alinea el icono y el texto de forma ordenada */
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 30px auto; /* Centrado en PC con margen inferior */
+  box-shadow: 10px 10px 15px -8px rgba(0,0,0,0.3); /* Sombra más moderna y suave */
+}
+
+.CardCounter h2 {
+  font-size: 20px;
+  text-align: center;
+  margin: 10px 0 0 0;
+  color: #1e293b;
+}
+
+.gridSalas {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.contSalas {
+  width: 140px; /* Un poco más de ancho en PC para que quepa el número de 100px */
+  height: 120px;
+  border-radius: 10px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
+}
+
+.contSalas:hover {
+  transform: translateY(-3px); /* Efecto sutil al pasar el cursor */
+}
+
+.contSalas span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  text-align: center;
+}
+
+.contSalas h3 {
+  margin: 10px 0 0 0;
+  font-size: 80px; /* Ajustado ligeramente para mejor balance */
+  color: #4D73F8;
+  line-height: 60px;
+  font-weight: 800;
+}
+
+
+/* ==========================================================
+   2. TABLETS (Pantallas medianas - menor a 768px)
+   ========================================================== */
+@media (max-width: 768px) {
+  .CardCounter {
+    max-width: 80%; /* Más espacio lateral en tablets */
+    padding: 20px;
+  }
+
+  .gridSalas {
+    gap: 12px;
+  }
+
+  .contSalas {
+    width: 120px; /* Regresa a tu tamaño original */
+    height: 110px;
+  }
+
+  .contSalas h3 {
+    font-size: 60px; /* Reducimos el número para evitar desbordes */
+    line-height: 50px;
+  }
+}
+
+
+/* ==========================================================
+   3. MÓVILES (Celulares - menor a 480px)
+   ========================================================== */
+@media (max-width: 480px) {
+  .CardCounter {
+    width: 100%; /* Aprovecha todo el ancho del celular */
+    box-sizing: border-box;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .CardCounter h2 {
+    font-size: 18px; /* Título ligeramente más pequeño */
+  }
+
+  .gridSalas {
+    gap: 10px; /* Espacio más compacto */
+  }
+
+  .contSalas {
+    /* Dos columnas perfectas que se auto-ajustan al ancho de la pantalla */
+    width: calc(50% - 5px); 
+    height: 95px;
+    border-radius: 8px;
+  }
+
+  .contSalas span {
+    font-size: 12px; /* Letra un poco más chica para que no se corte */
+  }
+
+  .contSalas h3 {
+    font-size: 45px; /* Reducción necesaria para que el número quepa dentro de la tarjeta */
+    line-height: 35px;
+    margin-top: 5px;
+  }
+}

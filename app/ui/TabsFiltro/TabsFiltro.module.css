@@ -1,0 +1,24 @@
+.container {
+  display: inline-flex;
+  border: 1px solid #74796e;
+  border-radius: 100px; /* M3 Segmented Control Pill shape */
+  overflow: hidden;
+  background-color: transparent;
+}
+.tab {
+  padding: 10px 24px;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #43493e;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-right: 1px solid #74796e;
+}
+.tab:last-child { border-right: none; }
+.tab:hover { background-color: rgba(77, 115, 248, 0.08); }
+.active {
+  background-color: #dbe1ff; /* M3 Container Color */
+  color: #00174b;
+}

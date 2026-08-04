@@ -1,0 +1,170 @@
+/* ==========================================================
+   1. ESTILOS BASE (Para PC, Laptops y Pantallas Grandes)
+   ========================================================== */
+.mainCard {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e1e3db;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05), 0px 1px 2px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden; /* Mantiene las esquinas redondeadas limpias */
+}
+
+.actionsBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px;
+  background-color: #fffbfe;
+  border-bottom: 1px solid #e1e3db;
+}
+
+.leftControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+}
+
+.exportGroup {
+  display: flex;
+  gap: 12px;
+}
+
+/* --- CONTROL TOTAL DEL TAMAÑO Y SCROLL --- */
+.tableResponsiveWrapper {
+  width: 100%;
+  overflow-x: auto; /* 👈 Permite scroll horizontal solo en la tabla si no hay espacio */
+  -webkit-overflow-scrolling: touch; /* Deslizamiento ultra táctil en iOS/iPad */
+}
+
+.tableSubtitleRow {
+  padding: 16px 24px 8px 24px;
+}
+
+.tableSubtitleRow h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #43493e;
+  margin: 0;
+}
+
+.tableSubtitleRow h3 span {
+  text-transform: capitalize;
+  color: #4d73f8;
+  font-weight: 600;
+}
+
+/* Forzamos que la cabecera y las filas midan lo mismo y tengan un ancho mínimo de seguridad */
+.tableHeader,
+.tableRow {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 1.2fr 1fr;
+  min-width: 750px; /* 👈 Evita que las 5 columnas colapsen o se encimen en pantallas chicas */
+  box-sizing: border-box;
+}
+
+.tableHeader {
+  padding: 14px 24px;
+  background-color: #f3f4f6;
+  font-size: 13px;
+  font-weight: 600;
+  color: #43493e;
+  border-bottom: 1px solid #e1e3db;
+}
+
+/* 5 Filas exactas x 64px = 320px de altura garantizada sin desbordamiento */
+.tableBodyFixed {
+  min-height: 320px;
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Scroll vertical sutil si llega a haber más contenido */
+}
+
+.tableRow {
+  padding: 0 24px;
+  height: 64px;
+  align-items: center;
+  font-size: 14px;
+  color: #1a1c18;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Evita que textos largos deformen la fila o se amontonen */
+.tableRow > div {
+  overflow: hidden;
+  text-overflow: ellipsis; /* Agrega "..." si el texto no cabe en su celda */
+  white-space: nowrap;
+  padding-right: 8px;
+}
+
+.tableRow:hover {
+  background-color: #f7f9ff;
+}
+
+.boldText {
+  font-weight: 500;
+  color: #1c1b1f;
+}
+
+.roleBadge {
+  text-transform: capitalize;
+  font-weight: 500;
+  color: #43493e;
+}
+
+.emptyState {
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #74796e;
+  font-size: 14px;
+}
+
+
+/* ==========================================================
+   2. RESPONSIVE INTELIGENTE (Tablets, iPads y Móviles)
+   ========================================================== */
+@media (max-width: 900px) {
+  /* En pantallas medianas o iPads, la barra de acciones se adapta cómodamente */
+  .actionsBar {
+    flex-direction: column;
+    align-items: stretch; /* Estira los controles para aprovechar el ancho */
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .leftControls {
+    justify-content: space-between; /* Distribuye filtros de forma limpia */
+    width: 100%;
+  }
+
+  .exportGroup {
+    justify-content: flex-end; /* Alinea los botones de exportar a la derecha */
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  /* En móviles pequeños todo fluye verticalmente de forma ordenada */
+  .leftControls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .exportGroup {
+    flex-direction: column;
+    align-items: stretch; /* Los botones de exportar ocupan todo el ancho del móvil */
+  }
+
+  .tableSubtitleRow {
+    padding: 12px 16px 6px 16px;
+  }
+}

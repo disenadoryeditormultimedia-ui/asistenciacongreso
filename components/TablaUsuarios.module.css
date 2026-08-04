@@ -1,0 +1,276 @@
+/* ==========================================================
+   1. CONTENEDOR PRINCIPAL Y FILTROS
+   ========================================================== */
+.conTabla {
+  width: 100%;
+  height: auto;
+  margin-bottom: 40px; /* Reducido de 100px para evitar espacios vacíos gigantes */
+}
+
+/* Switch de días unificado estilo M3 */
+.switchContenedor {
+  margin-bottom: 30px;
+  padding: 6px 10px;
+  background-color: #E5EDFF;
+  width: fit-content; /* Se adapta al contenido en lugar de usar un 15% rígido */
+  min-width: 180px;
+  border-radius: 18px;
+  justify-content: space-around;
+  display: flex;
+  align-items: center;
+  box-shadow: 0px 4px 6px -1px rgba(0, 0, 0, 0.08);
+}
+
+.btnSwitch {
+  width: 80px;
+  height: 36px;
+  color: black;
+  background-color: #E5EDFF;
+  border: none;
+  display: block;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnSwitch.activo {
+  background-color: #4D73F8;
+  color: white;
+}
+
+/* Contenedor de Select y Filtros de Estado */
+.contSelectYestado {
+  display: flex;
+  width: 100%; /* Toma el ancho completo en pantallas chicas */
+  max-width: 500px; /* Evita que se estire demasiado en PC */
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.contSelectYestado .selectFiltro {
+  flex: 1; /* Se estira proporcionalmente */
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background-color: white;
+  outline: none;
+}
+
+.contSelectYestado .switchEstado {
+  flex: 2;
+  display: flex;
+  gap: 8px;
+}
+
+.contSelectYestado .switchEstado button {
+  flex: 1;
+  padding: 10px;   
+  display: block;
+  background-color: #E5EDFF;
+  color: black;
+  border: none;
+  font-weight: 500;
+  font-size: 13px;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.contSelectYestado .switchEstado .activoEstado {
+  background: #27A9F5;
+  color: white;
+}
+
+/* Buscador con lupa */
+.buscadorGrupo {
+  width: 100%;
+  max-width: 400px; /* Evita que se estire infinito en PC */
+  display: flex;
+  position: relative;
+  margin-bottom: 30px;
+} 
+
+.buscadorGrupo .iconoBuscar {
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #27A9F5;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%); /* Lo centra perfectamente en vertical */
+  cursor: pointer;
+}
+
+.buscadorGrupo input {
+  padding: 12px 50px 12px 16px; /* Padding derecho extra para no tapar el texto con la lupa */
+  width: 100%;
+  border-radius: 30px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  box-sizing: border-box;
+}
+
+
+/* ==========================================================
+   2. TABLA RESPONSIVE CON SCROLL HORIZONTAL DE SEGURIDAD
+   ========================================================== */
+.tableResponsiveWrapper {
+  width: 100%;
+  overflow-x: auto; /* Deslizamiento en celulares e iPads para que no se rompan las columnas */
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+}
+
+/* Forzamos que la cabecera y filas mantengan una estructura alineada */
+.HeaderTabla,
+.usuario {
+  display: flex;
+  min-width: 700px; /* 👈 Ancho mínimo para que las columnas nunca colapsen */
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.HeaderTabla {
+  background-color: #4D73F8;
+  padding: 12px 16px;
+}
+
+.HeaderTabla div {
+  width: 20%; /* 5 columnas de tamaño idéntico */
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: white;
+}
+
+.usuario {
+  background-color: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 16px;
+}
+
+.usuario div {
+  width: 20%;
+  text-align: center;
+  font-size: 13px;
+  color: #666463;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.usuario div input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.usuario button {
+  border: none;
+  color: white;
+  background-color: #ef4444; /* Rojo para eliminación */
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.usuario button:hover {
+  background-color: #dc2626;
+}
+
+
+/* ==========================================================
+   3. COMPONENTES INTERNOS CORREGIDOS (Switch e inputs)
+   ========================================================== */
+
+/* Switch interactivo estilo iOS / M3 corregido matemáticamente */
+.switchButton {
+  width: 50px;
+  height: 28px;
+  background-color: #cbd5e1; /* Apagado */
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.switchActivo {
+  background-color: #22c55e; /* Encendido */
+}
+
+.switchCirculo {
+  width: 22px;
+  height: 22px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.switchActivo .switchCirculo {
+  left: 25px; /* Se mueve limpiamente sin salirse del botón */
+}
+
+/* Botón de salida de sala (Sintaxis corregida sin comillas) */
+.sala .btnSalida {
+  display: block;
+  width: 120px;
+  height: 34px;
+  background-color: #2B76E3;
+  border: 1px solid #cbd5e1; /* Corregidas las comillas */
+  border-radius: 6px;        /* Corregidas las comillas */
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 4px 10px;         /* Corregidas las comillas */
+  color: white;  
+  transition: background-color 0.2s;
+}
+
+.sala .btnSalida:hover {
+  background-color: #1d52a2;
+}
+
+.sala .btnSalida p {
+  line-height: 26px;
+  text-align: center;
+  margin: 0;
+}
+
+
+/* ==========================================================
+   4. AJUSTES RESPONSIVE (Móviles)
+   ========================================================== */
+@media (max-width: 768px) {
+  /* Apilamos los filtros de manera limpia en celular */
+  .contSelectYestado {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .contSelectYestado .switchEstado {
+    width: 100%;
+  }
+
+  .switchContenedor {
+    width: 100%; /* Toma todo el ancho en móvil */
+    max-width: 280px;
+  }
+}

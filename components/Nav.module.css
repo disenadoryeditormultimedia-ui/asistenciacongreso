@@ -1,0 +1,242 @@
+/* ==========================================================
+   1. ESTILOS BASE (Para PC, Laptops e iPads - Barra fija infalible)
+   ========================================================== */
+
+
+.ContNav {
+  width: 250px;
+  background-color: #2B76E3;
+  padding-bottom: 30px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0; 
+  /* CAMBIO AQUÍ: dvh se adapta perfecto a barras táctiles de Safari/Chrome */
+  height: 100dvh; 
+  z-index: 50; 
+  overflow-y: auto; 
+}
+
+.ContNav .ContTitNav {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  margin-bottom: 50px;
+  padding-top: 30px;
+}
+
+.ContNav .ContTitNav h2 {
+  margin: 15px auto 30px auto;
+  display: flex;
+  font-size: 20px;
+  line-height: 30px;
+  color: white;
+  text-align: center;
+} 
+
+.ContNav .ContTitNav .icono {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  background-color: #27A9F5;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ContNav .ContTitNav p {
+  margin: 0 auto;
+  font-size: 12px;
+  color: white;
+  margin-top: -20px;
+  text-align: center;
+}
+
+.ContNav nav {
+  display: flex;
+  flex-direction: column;
+  color: white;
+} 
+
+.ContNav nav a {
+  text-decoration: none;
+  color: white;
+  line-height: 40px;
+  padding-left: 30px;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.ContNav nav .icononav {
+  margin-right: 10px;
+  stroke: white; 
+} 
+
+.ContNav nav a.active {
+  color: white;
+  font-weight: 600;
+  background-color: #27A9F5;
+}
+
+.BtnAgregar {
+  width: 80%;
+  margin: 30px auto 0 auto;
+  background-color: #27A9F5;
+  border: none;
+  height: 50px;
+  border-radius: 15px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+} 
+
+.BtnAgregar:hover {
+  background-color: white;
+  color: #27A9F5;
+} 
+
+.link {
+  text-decoration: none;
+} 
+
+.BtnLogout {
+  width: 80%;
+  margin: 15px auto 0 auto; 
+  background-color: #ef4444; 
+  border: none;
+  height: 50px;
+  border-radius: 15px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.BtnLogout:hover {
+  background-color: #dc2626;
+}
+
+.iconoLogout {
+  stroke: white;
+}
+
+/* ==========================================================
+   2. PEQUEÑO RESPONSIVE (Solo para móviles muy angostos)
+   Mantiene el menú lateral pero lo ajusta a un tamaño compacto
+   ========================================================== */
+@media (max-width: 480px) {
+  .ContNav {
+    width: 200px; /* Un poco más angosto para dar aire en celular */
+     height: 100dvh; 
+  }
+
+  .ContNav .ContTitNav {
+    margin-bottom: 25px;
+  }
+
+  .ContNav .ContTitNav h2 {
+    font-size: 16px;
+  }
+
+  .ContNav nav a {
+    font-size: 13px;
+    padding-left: 20px;
+  }
+}
+
+
+
+/* ==========================================
+   ESTILOS PARA EL MODAL / POP-UP
+   ========================================== */
+
+/* Fondo oscuro translúcido que cubre toda la pantalla */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px); /* Efecto desfoque de fondo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Asegura que quede por encima de toda la navegación */
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Caja principal del Pop-up */
+.modalContent {
+  background-color: #ffffff;
+  color: #1e293b;
+  width: 90%;
+  max-width: 500px;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Encabezado del modal */
+.modalContent h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Botón para cerrar (X en la esquina superior derecha) */
+.btnCloseModal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btnCloseModal:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Animaciones suaves */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
