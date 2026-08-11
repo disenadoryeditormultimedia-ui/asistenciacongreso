@@ -140,7 +140,7 @@ export default function TablaReportes() {
               { id: 'todos', label: 'Todos' },
               { id: 'alumno', label: 'Alumnos' },
               { id: 'docente', label: 'Docentes' },
-              { id: 'administrativo', label: 'Administrativos' },
+              { id: 'admin', label: 'Administrativos' },
               { id: 'exalumno', label: 'Exalumnos' }
             ]}
           />

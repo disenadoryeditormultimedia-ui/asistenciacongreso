@@ -96,12 +96,12 @@ Reportes
 
 {/* Botón de Agregar Usuario */}
 
-<Link href="/registro">
+{/*<Link href="/registro">
 
 <button type="button" className={styles.BtnAgregar}>+ Agregar usuario</button>
 
 </Link>
-
+*/}
 
 
 {/* Botón para Cerrar Sesión */}
