@@ -10,17 +10,23 @@ import TabsFiltro from '@/app/ui/TabsFiltro/TabsFiltro';
 import Paginacion from '@/app/ui/Paginacion/Paginacion';
 import Button from '@/app/ui/Button/Button';
 
-// Interfaz alineada al esquema de Supabase ('profiles')
+// Interfaz alineada al esquema actualizado de Supabase ('profiles')
 interface Profile {
   id: string;
   nombre_completo: string;
   facultad: string;
   rol: string;
   sala: string | null;
+  // Asistencias y salidas evento
   asistencia_dia_1: boolean;
   hora_salida_dia_1: string | null;
   asistencia_dia_2: boolean;
   hora_salida_dia_2: string | null;
+  // Asistencias y salidas salón
+  asistencia_sala_dia_1: boolean;
+  hora_salida_sala_dia_1: string | null;
+  asistencia_sala_dia_2: boolean;
+  hora_salida_sala_dia_2: string | null;
 }
 
 export default function TablaReportes() {
@@ -63,9 +69,13 @@ export default function TablaReportes() {
   };
 
   // --- FILTRADO DE ASISTENTES POR DÍA Y POR ROL ---
-  // Obtener solo las personas que asistieron en el día seleccionado
+  // Obtener solo personas que asistieron al evento o al salón en el día seleccionado
   const usuariosPorDia = profiles.filter((u) => {
-    return diaSeleccionado === 1 ? u.asistencia_dia_1 : u.asistencia_dia_2;
+    if (diaSeleccionado === 1) {
+      return u.asistencia_dia_1 || u.asistencia_sala_dia_1;
+    } else {
+      return u.asistencia_dia_2 || u.asistencia_sala_dia_2;
+    }
   });
 
   // Filtrar adicionalmente por Rol
@@ -89,17 +99,41 @@ export default function TablaReportes() {
     setRolFiltro(filtroId);
   };
 
-  // --- LÓGICA DE EXPORTACIÓN A CSV ---
+  // --- LÓGICA DE EXPORTACIÓN A CSV / EXCEL ---
   const exportarAExcel = (tituloArchivo: string, datos: Profile[]) => {
     if (datos.length === 0) {
       alert("No hay datos de asistencia para exportar con los filtros seleccionados");
       return;
     }
 
-    const encabezados = ["Nombre Completo", "Facultad", "Sala", "Rol", "Hora de Salida"];
+    const encabezados = [
+      "Nombre Completo",
+      "Facultad",
+      "Rol",
+      "Salón / Sala",
+      "Asistencia Evento",
+      "Salida Evento",
+      "Asistencia Salón",
+      "Salida Salón"
+    ];
+
     const filas = datos.map((u: Profile) => {
-      const horaSalida = diaSeleccionado === 1 ? u.hora_salida_dia_1 : u.hora_salida_dia_2;
-      return `"${u.nombre_completo || ''}";"${u.facultad || ''}";"${u.sala || ''}";"${u.rol || ''}";"${formatearHora(horaSalida)}"`;
+      const asistEvento = diaSeleccionado === 1 ? u.asistencia_dia_1 : u.asistencia_dia_2;
+      const horaEvento = diaSeleccionado === 1 ? u.hora_salida_dia_1 : u.hora_salida_dia_2;
+      
+      const asistSala = diaSeleccionado === 1 ? u.asistencia_sala_dia_1 : u.asistencia_sala_dia_2;
+      const horaSala = diaSeleccionado === 1 ? u.hora_salida_sala_dia_1 : u.hora_salida_sala_dia_2;
+
+      return [
+        `"${u.nombre_completo || ''}"`,
+        `"${u.facultad || ''}"`,
+        `"${u.rol || ''}"`,
+        `"${u.sala || ''}"`,
+        `"${asistEvento ? 'Sí' : 'No'}"`,
+        `"${formatearHora(horaEvento)}"`,
+        `"${asistSala ? 'Sí' : 'No'}"`,
+        `"${formatearHora(horaSala)}"`
+      ].join(";");
     });
 
     const contenidoCsv = ["sep=;", encabezados.join(";"), ...filas].join("\n");
@@ -140,7 +174,7 @@ export default function TablaReportes() {
               { id: 'todos', label: 'Todos' },
               { id: 'alumno', label: 'Alumnos' },
               { id: 'docente', label: 'Docentes' },
-              { id: 'admin', label: 'Administrativos' },
+              { id: 'administrativo', label: 'Administrativos' },
               { id: 'exalumno', label: 'Exalumnos' }
             ]}
           />
@@ -157,41 +191,71 @@ export default function TablaReportes() {
         </div>
       </div>
 
-      {/* Contenedor de Tabla */}
-      <div className={styles.tableResponsiveWrapper}>
-        <div className={styles.tableSubtitleRow}>
-          <h3>Asistentes registrados: <span>{rolFiltro === 'todos' ? 'Todos los Roles' : rolFiltro}</span></h3>
-        </div>
+      {/* Contenedor con Scroll Horizontal para la Tabla */}
+      <div className={styles.tableResponsiveWrapper} style={{ overflowX: 'auto', width: '100%' }}>
+        <div style={{ minWidth: '900px' }}>
+          <div className={styles.tableSubtitleRow}>
+            <h3>Asistentes registrados: <span>{rolFiltro === 'todos' ? 'Todos los Roles' : rolFiltro}</span></h3>
+          </div>
 
-        <div className={styles.tableHeader}>
-          <div>Nombre Completo</div>
-          <div>Facultad</div>
-          <div>Salón / Sala</div>
-          <div>Rol</div>
-          <div>Hora Salida</div>
-        </div> 
+          <div 
+            className={styles.tableHeader}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1.2fr 1fr 1.2fr',
+              gap: '10px',
+              alignItems: 'center'
+            }}
+          >
+            <div>Nombre Completo</div>
+            <div>Facultad</div>
+            <div>Rol</div>
+            <div>Salón</div>
+            <div style={{ textAlign: 'center' }}>Asist. Evento</div>
+            <div style={{ textAlign: 'center' }}>Salida Evento</div>
+            <div style={{ textAlign: 'center' }}>Asist. Salón</div>
+            <div style={{ textAlign: 'center' }}>Salida Salón</div>
+          </div> 
 
-        <div className={styles.tableBodyFixed}>
-          {loading ? (
-            <div className={styles.emptyState}>Cargando reportes desde la base de datos...</div>
-          ) : registrosVisuales.length > 0 ? (
-            registrosVisuales.map((u) => {
-              const horaSalida = diaSeleccionado === 1 ? u.hora_salida_dia_1 : u.hora_salida_dia_2;
-              return (
-                <div key={u.id} className={styles.tableRow}>
-                  <div className={styles.boldText}>{u.nombre_completo}</div>
-                  <div>{u.facultad || '—'}</div>
-                  <div>{u.sala || '—'}</div>
-                  <div className={styles.roleBadge}>{u.rol || '—'}</div>
-                  <div>{formatearHora(horaSalida)}</div>
-                </div>
-              );
-            })
-          ) : (
-            <div className={styles.emptyState}>
-              No se encontraron asistentes con el filtro seleccionado para este día.
-            </div>
-          )}
+          <div className={styles.tableBodyFixed}>
+            {loading ? (
+              <div className={styles.emptyState}>Cargando reportes desde la base de datos...</div>
+            ) : registrosVisuales.length > 0 ? (
+              registrosVisuales.map((u) => {
+                const asistEvento = diaSeleccionado === 1 ? u.asistencia_dia_1 : u.asistencia_dia_2;
+                const horaEvento = diaSeleccionado === 1 ? u.hora_salida_dia_1 : u.hora_salida_dia_2;
+                
+                const asistSala = diaSeleccionado === 1 ? u.asistencia_sala_dia_1 : u.asistencia_sala_dia_2;
+                const horaSala = diaSeleccionado === 1 ? u.hora_salida_sala_dia_1 : u.hora_salida_sala_dia_2;
+
+                return (
+                  <div 
+                    key={u.id} 
+                    className={styles.tableRow}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1.2fr 1fr 1.2fr',
+                      gap: '10px',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <div className={styles.boldText}>{u.nombre_completo}</div>
+                    <div>{u.facultad || '—'}</div>
+                    <div className={styles.roleBadge}>{u.rol || '—'}</div>
+                    <div>{u.sala || '—'}</div>
+                    <div style={{ textAlign: 'center' }}>{asistEvento ? '✅' : '❌'}</div>
+                    <div style={{ textAlign: 'center' }}>{formatearHora(horaEvento)}</div>
+                    <div style={{ textAlign: 'center' }}>{asistSala ? '✅' : '❌'}</div>
+                    <div style={{ textAlign: 'center' }}>{formatearHora(horaSala)}</div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className={styles.emptyState}>
+                No se encontraron asistentes con el filtro seleccionado para este día.
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
