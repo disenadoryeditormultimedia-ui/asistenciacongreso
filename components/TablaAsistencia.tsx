@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import styles from './TablaAsistencia.module.css';
 import Switch from '@mui/material/Switch';
 import { supabase } from '@/app/lib/supabaseClient';
@@ -45,8 +45,15 @@ export default function TablaAsistencia() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // --- ESTADOS DEL ESCÁNER ---
+  const [modoEscaner, setModoEscaner] = useState<'general' | 'salon'>('general');
+  const [salaEscaner, setSalaEscaner] = useState<string>('Vendome');
+  const [codigoLeido, setCodigoLeido] = useState<string>('');
+  const [mensajeEscaner, setMensajeEscaner] = useState<{ texto: string; tipo: 'exito' | 'error' } | null>(null);
+  const inputEscanerRef = useRef<HTMLInputElement>(null);
+
   // --- CONTROLES DE BLOQUEO Y MODAL DE CONTRASEÑA ---
-  const CLAVE_MAESTRA = 'Programacion_1995';
+  const CLAVE_MAESTRA = 'congresoadmin2026';
   
   const [dia1Desbloqueado, setDia1Desbloqueado] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -125,13 +132,120 @@ export default function TablaAsistencia() {
     cargarUsuarios();
   }, [cargarUsuarios]);
 
+  // --- LÓGICA DE FOCO INTELIGENTE PARA EL ESCÁNER ---
+  useEffect(() => {
+    const mantenerFoco = (e?: MouseEvent) => {
+      const target = e?.target as HTMLElement;
+      // Si el usuario hace clic en controles de la UI, no interrumpimos su interacción
+      if (
+        target?.tagName === 'SELECT' || 
+        target?.tagName === 'INPUT' || 
+        target?.tagName === 'BUTTON' ||
+        target?.closest('select') ||
+        target?.closest('.MuiSwitch-root')
+      ) {
+        return;
+      }
+      inputEscanerRef.current?.focus();
+    };
+
+    mantenerFoco();
+    window.addEventListener('click', mantenerFoco);
+    return () => window.removeEventListener('click', mantenerFoco);
+  }, []);
+
+  // --- PROCESADOR DE LECTURA DE CÓDIGO QR ---
+  const procesarEscaneoQR = async (cadenaQR: string) => {
+    if (!esEdicionPermitida()) {
+      setMensajeEscaner({ texto: '🔴 Edición bloqueada para este día.', tipo: 'error' });
+      setCodigoLeido('');
+      return;
+    }
+
+    try {
+      // Intenta interpretar el JSON enviado por el QR
+      const datosQR = JSON.parse(cadenaQR);
+      const userId = datosQR.id;
+
+      if (!userId) throw new Error('QR sin ID válido');
+
+      // Buscar usuario en la base de datos
+      const { data: usuario, error: errFetch } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (errFetch || !usuario) throw new Error('Asistente no encontrado en la BD');
+
+      const campoGeneral = diaSeleccionado === 1 ? 'asistencia_dia_1' : 'asistencia_dia_2';
+      const campoSalon = diaSeleccionado === 1 ? 'asistencia_sala_dia_1' : 'asistencia_sala_dia_2';
+
+      if (modoEscaner === 'general') {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ [campoGeneral]: true })
+          .eq('id', userId);
+
+        if (error) throw error;
+
+        setMensajeEscaner({
+          texto: `✅ Check-in general exitoso: ${usuario.nombre_completo}`,
+          tipo: 'exito'
+        });
+      } else {
+        // Validación: Debe estar presente en el evento general
+        if (!usuario[campoGeneral]) {
+          setMensajeEscaner({
+            texto: `⚠️ ${usuario.nombre_completo} debe ingresar primero por recepción general.`,
+            tipo: 'error'
+          });
+          setCodigoLeido('');
+          return;
+        }
+
+        // Validación: Sala asignada vs Sala del escáner
+        if (usuario.sala && usuario.sala !== salaEscaner) {
+          setMensajeEscaner({
+            texto: `❌ SALA INCORRECTA: ${usuario.nombre_completo} tiene asignada "${usuario.sala}"`,
+            tipo: 'error'
+          });
+          setCodigoLeido('');
+          return;
+        }
+
+        const { error } = await supabase
+          .from('profiles')
+          .update({ [campoSalon]: true })
+          .eq('id', userId);
+
+        if (error) throw error;
+
+        setMensajeEscaner({
+          texto: `✅ Check-in en ${salaEscaner} exitoso: ${usuario.nombre_completo}`,
+          tipo: 'exito'
+        });
+      }
+
+      // Refrescar tabla automáticamente
+      cargarUsuarios();
+
+    } catch (err: any) {
+      setMensajeEscaner({
+        texto: `❌ Error de lectura: ${err.message || 'Código QR no reconocido'}`,
+        tipo: 'error'
+      });
+    } finally {
+      setCodigoLeido('');
+    }
+  };
+
   const formatearHora = (fechaIso: string | null) => {
     if (!fechaIso) return '—'; 
     const fecha = new Date(fechaIso);
     return fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
-  // Calcula minutos entre la salida registrada y la hora actual o parámetro
   const calcularMinutosTranscurridos = (fechaIsoSalida: string) => {
     const inicio = new Date(fechaIsoSalida).getTime();
     const ahora = new Date().getTime();
@@ -197,11 +311,9 @@ export default function TablaAsistencia() {
       : (diaSeleccionado === 1 ? 'hora_salida_dia_1' : 'hora_salida_dia_2');
 
     if (horaActual) {
-      // Si la hora ya existe, se abre el modal para quitarla libremente
       setCambioPendiente({ id, campo, nuevoValor: null });
       setModalAbierto(true);
     } else {
-      // Registrar nueva hora de salida
       registrarHora(id, campo, new Date().toISOString());
     }
   };
@@ -237,7 +349,11 @@ export default function TablaAsistencia() {
   const usuariosFiltrados = usuarios.filter((usuario) => {
     const asistencia = diaSeleccionado === 1 ? usuario.asistencia_dia_1 : usuario.asistencia_dia_2;
 
-    const pasaSala = salaFiltro === 'todas' || usuario.facultad === salaFiltro;
+    const pasaFacultad = salaFiltro === 'todas' || usuario.facultad === salaFiltro;
+    
+    // Filtra la tabla por el salón del escáner si está activo el modo "Entrada a Salón"
+    const pasaSalonEscaner = modoEscaner === 'salon' ? usuario.sala === salaEscaner : true;
+
     const pasaStatus =
       statusFiltro === 'todos' ||
       (statusFiltro === 'presente' && Boolean(asistencia)) ||
@@ -245,14 +361,14 @@ export default function TablaAsistencia() {
 
     const textoBusqueda = busqueda.toLowerCase().trim();
     if (!textoBusqueda) {
-      return pasaSala && pasaStatus;
+      return pasaFacultad && pasaSalonEscaner && pasaStatus;
     }
 
     const nombreMatch = usuario.nombre_completo ? usuario.nombre_completo.toLowerCase().includes(textoBusqueda) : false;
     const facultadMatch = usuario.facultad ? usuario.facultad.toLowerCase().includes(textoBusqueda) : false;
     const rolMatch = usuario.rol ? usuario.rol.toLowerCase().includes(textoBusqueda) : false;
 
-    return pasaSala && pasaStatus && (nombreMatch || facultadMatch || rolMatch);
+    return pasaFacultad && pasaSalonEscaner && pasaStatus && (nombreMatch || facultadMatch || rolMatch);
   });
 
   const indiceUltimoItem = paginaActual * elementosPorPagina;
@@ -269,7 +385,7 @@ export default function TablaAsistencia() {
   return (
     <div className={styles.mainCard}>
       
-      {/* Indicador y Botón Dinámico */}
+      {/* Indicador de Edición y Bloqueo */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: edicionHabilitada ? '#0CE816' : '#FF4D4D' }}>
           {edicionHabilitada ? '🟢 Registro habilitado' : '🔴 Día bloqueado para edición'}
@@ -291,7 +407,76 @@ export default function TablaAsistencia() {
         </button>
       </div>
 
-      {/* Controles Superiores */}
+      {/* --- PANEL DEL ESCÁNER DE CÓDIGOS QR --- */}
+      <div style={{ background: '#111827', color: '#fff', padding: '16px', borderRadius: '8px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div>
+            <label style={{ fontSize: '0.8rem', display: 'block', color: '#9CA3AF' }}>Modo Escáner:</label>
+            <select 
+              value={modoEscaner} 
+              onChange={(e) => {
+                setModoEscaner(e.target.value as 'general' | 'salon');
+                setPaginaActual(1);
+              }}
+              style={{ padding: '8px', borderRadius: '4px', background: '#1F2937', color: '#fff', border: '1px solid #374151', cursor: 'pointer' }}
+            >
+              <option value="general">1. Entrada General</option>
+              <option value="salon">2. Entrada a Salón</option>
+            </select>
+          </div>
+
+          {modoEscaner === 'salon' && (
+            <div>
+              <label style={{ fontSize: '0.8rem', display: 'block', color: '#9CA3AF' }}>Salón que estás controlando:</label>
+              <select 
+                value={salaEscaner} 
+                onChange={(e) => {
+                  setSalaEscaner(e.target.value);
+                  setPaginaActual(1);
+                }}
+                style={{ padding: '8px', borderRadius: '4px', background: '#1F2937', color: '#fff', border: '1px solid #374151', cursor: 'pointer' }}
+              >
+                <option value="Vendome">Vendome</option>
+                <option value="Concorde">Concorde</option>
+                <option value="Louvre">Louvre</option>
+              </select>
+            </div>
+          )}
+
+          {/* Input invisible que escucha al lector óptico */}
+          <input
+            ref={inputEscanerRef}
+            type="text"
+            value={codigoLeido}
+            onChange={(e) => setCodigoLeido(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                procesarEscaneoQR(codigoLeido);
+              }
+            }}
+            style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
+          />
+
+          <div style={{ fontSize: '0.85rem', color: '#10B981', fontWeight: 'bold' }}>
+            Puedes usar la tabla manual en cualquier momento
+          </div>
+        </div>
+
+        {mensajeEscaner && (
+          <div style={{
+            marginTop: '12px',
+            padding: '10px 14px',
+            borderRadius: '6px',
+            fontWeight: 'bold',
+            backgroundColor: mensajeEscaner.tipo === 'exito' ? '#065F46' : '#991B1B',
+            color: '#ffffff'
+          }}>
+            {mensajeEscaner.texto}
+          </div>
+        )}
+      </div>
+
+      {/* Controles Superiores / Filtros */}
       <div className={styles.actionsBar}>
         <SwitchDias 
           diaSeleccionado={diaSeleccionado} 
@@ -328,7 +513,7 @@ export default function TablaAsistencia() {
         </div>
       </div>
 
-      {/* Tabla de Asistencia */}
+      {/* Tabla de Asistencia Manual */}
       <div className={styles.tableResponsiveWrapper} style={{ overflowX: 'auto', width: '100%' }}>
         <div style={{ minWidth: '1000px' }}>
           
@@ -362,7 +547,6 @@ export default function TablaAsistencia() {
                 const asistenciaSala = diaSeleccionado === 1 ? usuario.asistencia_sala_dia_1 : usuario.asistencia_sala_dia_2;
                 const horaSalidaSala = diaSeleccionado === 1 ? usuario.hora_salida_sala_dia_1 : usuario.hora_salida_sala_dia_2;
 
-                // Validación de salida incompleta (> 30 min) solo para Salón
                 const minutosFueraSalon = horaSalidaSala ? calcularMinutosTranscurridos(horaSalidaSala) : 0;
                 const esIncompletaSalon = horaSalidaSala !== null && minutosFueraSalon > 30;
 
@@ -382,7 +566,7 @@ export default function TablaAsistencia() {
                     <div>{usuario.rol || '—'}</div>
                     <div>{usuario.sala || '—'}</div>
                     
-                    {/* Asistencia Evento */}
+                    {/* Asistencia Evento (Switch Manual) */}
                     <div className={styles.centerCell} style={{ display: 'flex', justifyContent: 'center' }}>
                       <Switch
                         disabled={!edicionHabilitada}
@@ -421,7 +605,7 @@ export default function TablaAsistencia() {
                       )}
                     </div>
 
-                    {/* Asistencia Salón */}
+                    {/* Asistencia Salón (Switch Manual) */}
                     <div className={styles.centerCell} style={{ display: 'flex', justifyContent: 'center' }}>
                       <Switch
                         disabled={!edicionHabilitada || !asistencia}
@@ -434,7 +618,7 @@ export default function TablaAsistencia() {
                       />
                     </div>
 
-                    {/* Salida Salón (Con indicador de Incompleta si supera 30 min) */}
+                    {/* Salida Salón */}
                     <div className={styles.centerCell} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                       {!horaSalidaSala ? (
                         <button 

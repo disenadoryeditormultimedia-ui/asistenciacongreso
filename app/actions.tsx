@@ -7,7 +7,7 @@ export async function loginAction(formData: FormData) {
 
   // Si Next.js no lee el .env, usamos "admin" y "supersecreto123" como plan B
   const usuarioCorrecto = process.env.ADMIN_USER || "admin";
-  const passwordCorrecta = process.env.ADMIN_PASSWORD || "gestionlist";
+  const passwordCorrecta = process.env.ADMIN_PASSWORD || "congreso2026";
 
   if (usuarioInput === usuarioCorrecto && passwordInput === passwordCorrecta) {
     return { success: true };
