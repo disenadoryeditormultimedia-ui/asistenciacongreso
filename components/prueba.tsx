@@ -32,7 +32,26 @@ interface Usuario {
 }
 
 export default function TablaAsistencia() {
+  // 1. PERSISTENCIA DE DÍA: Cargar día guardado o por defecto 1
   const [diaSeleccionado, setDiaSeleccionado] = useState<number>(1);
+  const diaSeleccionadoRef = useRef<number>(1);
+
+  // Recuperar el día activo desde localStorage al iniciar el componente
+  useEffect(() => {
+    const diaGuardado = localStorage.getItem('dia_seleccionado_asistencia');
+    if (diaGuardado) {
+      const numDia = Number(diaGuardado);
+      setDiaSeleccionado(numDia);
+      diaSeleccionadoRef.current = numDia;
+    }
+  }, []);
+
+  // Mantener sincronizada la ref y guardar en localStorage cada vez que cambia el día
+  useEffect(() => {
+    diaSeleccionadoRef.current = diaSeleccionado;
+    localStorage.setItem('dia_seleccionado_asistencia', String(diaSeleccionado));
+  }, [diaSeleccionado]);
+
   const [salaFiltro, setSalaFiltro] = useState<string>('todas');
   const [statusFiltro, setStatusFiltro] = useState<string>('todos');
   const [busqueda, setBusqueda] = useState<string>('');
@@ -47,8 +66,6 @@ export default function TablaAsistencia() {
   const [loading, setLoading] = useState<boolean>(true);
 
   // --- ESTADOS DEL ESCÁNER ---
-  const [modoEscaner, setModoEscaner] = useState<'general' | 'salon'>('general');
-  const [salaEscaner, setSalaEscaner] = useState<string>('Lemont');
   const [codigoLeido, setCodigoLeido] = useState<string>('');
   const [procesandoLectura, setProcesandoLectura] = useState<boolean>(false);
   const [mensajeEscaner, setMensajeEscaner] = useState<{ texto: string; tipo: 'exito' | 'error' } | null>(null);
@@ -57,12 +74,18 @@ export default function TablaAsistencia() {
   // --- CONTROLES DE BLOQUEO Y MODAL DE CONTRASEÑA ---
   const CLAVE_MAESTRA = process.env.NEXT_PUBLIC_CONGRESO_CLAVE_MAESTRA || 'congresoadmin2026';
   
-  const [dia1Desbloqueado, setDia1Desbloqueado] = useState<boolean>(false);
-  const [dia2Desbloqueado, setDia2Desbloqueado] = useState<boolean>(false);
+  const [dia1Desbloqueado, setDia1Desbloqueado] = useState<boolean>(true);
+  const [dia2Desbloqueado, setDia2Desbloqueado] = useState<boolean>(true);
   const [modalClaveAbierto, setModalClaveAbierto] = useState<boolean>(false);
   const [inputPassword, setInputPassword] = useState<string>('');
 
-  // Obtener la sala respetando la columna 'sala' de Supabase
+  const cambiarDia = (nuevoDia: number) => {
+    diaSeleccionadoRef.current = nuevoDia;
+    setDiaSeleccionado(nuevoDia);
+    localStorage.setItem('dia_seleccionado_asistencia', String(nuevoDia));
+    setPaginaActual(1);
+  };
+
   const obtenerSalonUsuario = (usuario: Usuario): string => {
     if (usuario.sala && usuario.sala.trim() !== '') {
       return usuario.sala.trim();
@@ -71,29 +94,24 @@ export default function TablaAsistencia() {
   };
 
   useEffect(() => {
-    setDia1Desbloqueado(localStorage.getItem('desbloqueado_dia_1') === 'true');
-    setDia2Desbloqueado(localStorage.getItem('desbloqueado_dia_2') === 'true');
+    const d1 = localStorage.getItem('desbloqueado_dia_1');
+    const d2 = localStorage.getItem('desbloqueado_dia_2');
+    if (d1 !== null) setDia1Desbloqueado(d1 === 'true');
+    if (d2 !== null) setDia2Desbloqueado(d2 === 'true');
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('desbloqueado_dia_1', String(dia1Desbloqueado));
-  }, [dia1Desbloqueado]);
-
-  useEffect(() => {
-    localStorage.setItem('desbloqueado_dia_2', String(dia2Desbloqueado));
-  }, [dia2Desbloqueado]);
-
-  const esEdicionPermitida = useCallback(() => {
+  const esEdicionPermitida = (dia?: number): boolean => {
     const hoy = new Date().toISOString().split('T')[0];
     const FECHA_DIA_1 = '2026-10-20';
     const FECHA_DIA_2 = '2026-10-21';
+    const diaAComprobar = dia ?? diaSeleccionadoRef.current;
 
-    if (diaSeleccionado === 1) {
-      return hoy === FECHA_DIA_1 || dia1Desbloqueado;
+    if (diaAComprobar === 1) {
+      return dia1Desbloqueado || hoy === FECHA_DIA_1;
     } else {
-      return hoy === FECHA_DIA_2 || dia2Desbloqueado;
+      return dia2Desbloqueado || hoy === FECHA_DIA_2;
     }
-  }, [diaSeleccionado, dia1Desbloqueado, dia2Desbloqueado]);
+  };
 
   const abrirModalClave = () => {
     setInputPassword('');
@@ -101,14 +119,19 @@ export default function TablaAsistencia() {
   };
 
   const confirmarClave = () => {
+    const diaActual = diaSeleccionadoRef.current;
     if (inputPassword === CLAVE_MAESTRA) {
-      const estaDesbloqueado = diaSeleccionado === 1 ? dia1Desbloqueado : dia2Desbloqueado;
-      if (diaSeleccionado === 1) {
-        setDia1Desbloqueado((prev) => !prev);
+      if (diaActual === 1) {
+        const nuevoEstado = !dia1Desbloqueado;
+        setDia1Desbloqueado(nuevoEstado);
+        localStorage.setItem('desbloqueado_dia_1', String(nuevoEstado));
+        alert(`El Día 1 ha sido ${nuevoEstado ? 'desbloqueado' : 'bloqueado'}.`);
       } else {
-        setDia2Desbloqueado((prev) => !prev);
+        const nuevoEstado = !dia2Desbloqueado;
+        setDia2Desbloqueado(nuevoEstado);
+        localStorage.setItem('desbloqueado_dia_2', String(nuevoEstado));
+        alert(`El Día 2 ha sido ${nuevoEstado ? 'desbloqueado' : 'bloqueado'}.`);
       }
-      alert(`El Día ${diaSeleccionado} ha sido ${estaDesbloqueado ? 'bloqueado' : 'desbloqueado'}.`);
       setModalClaveAbierto(false);
       setInputPassword('');
     } else {
@@ -116,8 +139,8 @@ export default function TablaAsistencia() {
     }
   };
 
+  // Carga completa de la base de datos de usuarios
   const cargarUsuarios = useCallback(async () => {
-    setLoading(true);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -132,15 +155,22 @@ export default function TablaAsistencia() {
   }, []);
 
   useEffect(() => {
+    setLoading(true);
     cargarUsuarios();
   }, [cargarUsuarios]);
 
-  // --- LÓGICA DE FOCO INTELIGENTE ---
+  // Autoenfoque del lector
   useEffect(() => {
-    const mantenerFoco = (e?: MouseEvent) => {
-      if (modalAbierto || modalClaveAbierto || procesandoLectura) return;
+    const enfocarInput = () => {
+      if (!modalAbierto && !modalClaveAbierto && inputEscanerRef.current) {
+        inputEscanerRef.current.focus();
+      }
+    };
 
-      const target = e?.target as HTMLElement;
+    enfocarInput();
+
+    const mantenerFoco = (e: MouseEvent | KeyboardEvent) => {
+      const target = e.target as HTMLElement;
       if (
         target?.tagName === 'SELECT' || 
         target?.tagName === 'INPUT' || 
@@ -150,128 +180,125 @@ export default function TablaAsistencia() {
       ) {
         return;
       }
-      inputEscanerRef.current?.focus();
+      enfocarInput();
     };
 
-    mantenerFoco();
     window.addEventListener('click', mantenerFoco);
-    return () => window.removeEventListener('click', mantenerFoco);
-  }, [modalAbierto, modalClaveAbierto, procesandoLectura]);
+    return () => {
+      window.removeEventListener('click', mantenerFoco);
+    };
+  }, [modalAbierto, modalClaveAbierto]);
 
-  // --- PROCESADOR DE LECTURA DE CÓDIGO QR (PROGRESIVO) ---
+  // --- PROCESADOR CON RE-CARGA DIRECTA DE BD AL TERMINAR ---
   const procesarEscaneoQR = async (cadenaQR: string) => {
-    if (!cadenaQR.trim() || procesandoLectura) return;
+    const textoLimpio = cadenaQR.replace(/[\r\n]+/g, '').trim();
+
+    if (!textoLimpio || procesandoLectura) return;
 
     setProcesandoLectura(true);
-    setCodigoLeido('');
-
-    if (!esEdicionPermitida()) {
-      setMensajeEscaner({ texto: '🔴 Edición bloqueada para este día.', tipo: 'error' });
-      setProcesandoLectura(false);
-      return;
-    }
+    
+    // Obtener día activo sincrónicamente
+    const diaActual = Number(diaSeleccionadoRef.current) === 2 ? 2 : 1;
 
     try {
-      let entrada = cadenaQR.trim();
+      let entrada = textoLimpio;
 
       try {
         const datosQR = JSON.parse(entrada);
         entrada = (datosQR.id || datosQR.userId || datosQR.uuid || entrada).toString();
       } catch {
-        // No es JSON
+        // Formato texto plano
       }
 
-      let userId = entrada
+      let candidatoUUID = entrada
+        .trim()
         .replace(/^['"]|['"]$/g, '')
-        .replace(/'/g, '-')
-        .trim();
+        .replace(/['?_\/\\]/g, '-');
+
+      const regexUUID = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/;
+      const coincidencia = candidatoUUID.match(regexUUID);
+
+      const userId = coincidencia ? coincidencia[0].toLowerCase() : candidatoUUID.toLowerCase();
 
       if (!userId || userId === 'undefined') {
-        throw new Error('CÓDIGO QR NO VÁLIDO O UUID VACÍO');
+        throw new Error('Código QR no válido o ID vacío');
       }
 
-      const { data: usuario, error: errFetch } = await supabase
+      const { data: usuarioBD, error: errFetch } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
 
-      if (errFetch) {
-        throw new Error(`Error en base de datos: ${errFetch.message}`);
-      }
+      if (errFetch) throw new Error(`Error BD: ${errFetch.message}`);
+      if (!usuarioBD) throw new Error(`Asistente no encontrado (ID: ${userId})`);
 
-      if (!usuario) {
-        throw new Error(`Asistente no encontrado (ID: ${userId})`);
-      }
+      const usuario = usuarioBD as Usuario;
+      
+      const campoGeneral = diaActual === 2 ? 'asistencia_dia_2' : 'asistencia_dia_1';
+      const campoSalon = diaActual === 2 ? 'asistencia_sala_dia_2' : 'asistencia_sala_dia_1';
 
-      const campoGeneral = diaSeleccionado === 1 ? 'asistencia_dia_1' : 'asistencia_dia_2';
-      const campoSalon = diaSeleccionado === 1 ? 'asistencia_sala_dia_1' : 'asistencia_sala_dia_2';
-      const salaAsignada = obtenerSalonUsuario(usuario as Usuario);
+      const yaTieneGeneral = Boolean(usuario[campoGeneral]);
+      const yaTieneSalon = Boolean(usuario[campoSalon]);
+      const salaAsignada = obtenerSalonUsuario(usuario);
 
-      // Buscamos el estado actual del usuario en la memoria local
-      const usuarioEnEstado = usuarios.find((u) => u.id === userId) || (usuario as Usuario);
-      const yaTieneGeneral = Boolean(usuarioEnEstado[campoGeneral as keyof Usuario]);
-      const yaTieneSalon = Boolean(usuarioEnEstado[campoSalon as keyof Usuario]);
-
-      // --- EVALUACIÓN PROGRESIVA ---
       if (!yaTieneGeneral) {
-        // --- 1ER ESCANEO: Marca Asistencia General ---
-        
-        setUsuarios((prev) =>
-          prev.map((u) => (u.id === userId ? { ...u, [campoGeneral]: true } : u))
-        );
-
-        const { error } = await supabase
+        // 1ER ESCANEO: GENERAL
+        const { error: errUpdate } = await supabase
           .from('profiles')
           .update({ [campoGeneral]: true })
           .eq('id', userId);
 
-        if (error) throw error;
+        if (errUpdate) throw errUpdate;
+
+        // ⚡ RECARGAR DESDE BASE DE DATOS PARA RE-RENDERIZAR SWITCHES INMEDIATAMENTE
+        await cargarUsuarios();
 
         setMensajeEscaner({
-          texto: `✅ 1er Check (General): ${usuario.nombre_completo} (Salón: ${salaAsignada})`,
+          texto: `✅ Check Entrada General (Día ${diaActual}): ${usuario.nombre_completo} (Salón: ${salaAsignada})`,
           tipo: 'exito'
         });
 
       } else if (!yaTieneSalon) {
-        // --- 2DO ESCANEO: Marca Asistencia a Salón ---
-
-        setUsuarios((prev) =>
-          prev.map((u) => (u.id === userId ? { ...u, [campoSalon]: true } : u))
-        );
-
-        const { error } = await supabase
+        // 2DO ESCANEO: SALÓN
+        const { error: errUpdate } = await supabase
           .from('profiles')
           .update({ [campoSalon]: true })
           .eq('id', userId);
 
-        if (error) throw error;
+        if (errUpdate) throw errUpdate;
+
+        // ⚡ RECARGAR DESDE BASE DE DATOS PARA RE-RENDERIZAR SWITCHES INMEDIATAMENTE
+        await cargarUsuarios();
 
         setMensajeEscaner({
-          texto: `✅ 2do Check (Salón): ${usuario.nombre_completo}`,
+          texto: `✅ Check Entrada Salón (Día ${diaActual}): ${usuario.nombre_completo}`,
           tipo: 'exito'
         });
 
       } else {
-        // --- ESCANEOS POSTERIORES: Ya completó ambos ---
         setMensajeEscaner({
-          texto: `ℹ️ ${usuario.nombre_completo} ya tiene marcadas ambas asistencias.`,
+          texto: `ℹ️ ${usuario.nombre_completo} ya cuenta con sus 2 asistencias (General y Salón) para el Día ${diaActual}.`,
           tipo: 'exito'
         });
       }
 
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Código QR no reconocido';
+      const msg = err instanceof Error ? err.message : 'Error al procesar QR';
       setMensajeEscaner({
         texto: `❌ Error de lectura: ${msg}`,
         tipo: 'error'
       });
-      await cargarUsuarios();
     } finally {
       setProcesandoLectura(false);
+      setCodigoLeido('');
+
       setTimeout(() => {
-        inputEscanerRef.current?.focus();
-      }, 100);
+        if (inputEscanerRef.current) {
+          inputEscanerRef.current.value = '';
+          inputEscanerRef.current.focus();
+        }
+      }, 20);
     }
   };
 
@@ -289,11 +316,12 @@ export default function TablaAsistencia() {
 
   const manejarCambioAsistencia = async (id: string, valorActual: boolean) => {
     if (!esEdicionPermitida()) {
-      alert('La edición para este día está bloqueada por fecha.');
+      alert('La edición para este día está bloqueada. Usa la clave para desbloquearlo.');
       return;
     }
 
-    const campoAsistencia = diaSeleccionado === 1 ? 'asistencia_dia_1' : 'asistencia_dia_2';
+    const diaActual = diaSeleccionadoRef.current;
+    const campoAsistencia = diaActual === 2 ? 'asistencia_dia_2' : 'asistencia_dia_1';
     const nuevoEstado = !valorActual;
 
     setUsuarios((prev) =>
@@ -313,11 +341,12 @@ export default function TablaAsistencia() {
 
   const manejarCambioAsistenciaSala = async (id: string, valorActual: boolean) => {
     if (!esEdicionPermitida()) {
-      alert('La edición para este día está bloqueada por fecha.');
+      alert('La edición para este día está bloqueada. Usa la clave para desbloquearlo.');
       return;
     }
 
-    const campoSala = diaSeleccionado === 1 ? 'asistencia_sala_dia_1' : 'asistencia_sala_dia_2';
+    const diaActual = diaSeleccionadoRef.current;
+    const campoSala = diaActual === 2 ? 'asistencia_sala_dia_2' : 'asistencia_sala_dia_1';
     const nuevoEstado = !valorActual;
 
     setUsuarios((prev) =>
@@ -337,13 +366,14 @@ export default function TablaAsistencia() {
 
   const presionarBotonSalida = (id: string, horaActual: string | null, esSalidaSalon: boolean = false) => {
     if (!esEdicionPermitida()) {
-      alert('La edición para este día está bloqueada por fecha.');
+      alert('La edición para este día está bloqueada. Usa la clave para desbloquearlo.');
       return;
     }
 
+    const diaActual = diaSeleccionadoRef.current;
     const campo = esSalidaSalon 
-      ? (diaSeleccionado === 1 ? 'hora_salida_sala_dia_1' : 'hora_salida_sala_dia_2')
-      : (diaSeleccionado === 1 ? 'hora_salida_dia_1' : 'hora_salida_dia_2');
+      ? (diaActual === 2 ? 'hora_salida_sala_dia_2' : 'hora_salida_sala_dia_1')
+      : (diaActual === 2 ? 'hora_salida_dia_2' : 'hora_salida_dia_1');
 
     if (horaActual) {
       setCambioPendiente({ id, campo, nuevoValor: null });
@@ -382,10 +412,8 @@ export default function TablaAsistencia() {
   };
 
   const usuariosFiltrados = usuarios.filter((usuario) => {
-    const asistencia = diaSeleccionado === 1 ? usuario.asistencia_dia_1 : usuario.asistencia_dia_2;
-    const salaCalculada = obtenerSalonUsuario(usuario);
+    const asistencia = diaSeleccionado === 2 ? usuario.asistencia_dia_2 : usuario.asistencia_dia_1;
     const pasaFacultad = salaFiltro === 'todas' || usuario.facultad === salaFiltro;
-    const pasaSalonEscaner = modoEscaner === 'salon' ? salaCalculada.toLowerCase() === salaEscaner.toLowerCase() : true;
 
     const pasaStatus =
       statusFiltro === 'todos' ||
@@ -394,26 +422,21 @@ export default function TablaAsistencia() {
 
     const textoBusqueda = busqueda.toLowerCase().trim();
     if (!textoBusqueda) {
-      return pasaFacultad && pasaSalonEscaner && pasaStatus;
+      return pasaFacultad && pasaStatus;
     }
 
     const nombreMatch = usuario.nombre_completo?.toLowerCase().includes(textoBusqueda) ?? false;
     const facultadMatch = usuario.facultad?.toLowerCase().includes(textoBusqueda) ?? false;
     const rolMatch = usuario.rol?.toLowerCase().includes(textoBusqueda) ?? false;
 
-    return pasaFacultad && pasaSalonEscaner && pasaStatus && (nombreMatch || facultadMatch || rolMatch);
+    return pasaFacultad && pasaStatus && (nombreMatch || facultadMatch || rolMatch);
   });
 
   const indiceUltimoItem = paginaActual * elementosPorPagina;
   const indicePrimerItem = indiceUltimoItem - elementosPorPagina;
   const registrosVisuales = usuariosFiltrados.slice(indicePrimerItem, indiceUltimoItem);
 
-  const resetearPaginacionYCambiarDia = (dia: number) => {
-    setPaginaActual(1);
-    setDiaSeleccionado(dia);
-  };
-
-  const edicionHabilitada = esEdicionPermitida();
+  const edicionHabilitada = esEdicionPermitida(diaSeleccionado);
 
   return (
     <div className={styles.mainCard}>
@@ -421,7 +444,7 @@ export default function TablaAsistencia() {
       {/* Indicador de Edición y Bloqueo */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: edicionHabilitada ? '#0CE816' : '#FF4D4D' }}>
-          {edicionHabilitada ? '🟢 Registro habilitado' : '🔴 Día bloqueado para edición'}
+          {edicionHabilitada ? `🟢 Registro habilitado (Día ${diaSeleccionado})` : `🔴 Día ${diaSeleccionado} bloqueado para edición`}
         </span>
         
         <button 
@@ -436,64 +459,31 @@ export default function TablaAsistencia() {
             fontWeight: 'bold'
           }}
         >
-          {edicionHabilitada ? '🔒 Bloquear día con clave' : '🔓 Desbloquear día con clave'}
+          {edicionHabilitada ? `🔒 Bloquear Día ${diaSeleccionado} con clave` : `🔓 Desbloquear Día ${diaSeleccionado} con clave`}
         </button>
       </div>
 
       {/* --- PANEL DEL ESCÁNER DE CÓDIGOS QR --- */}
       <div style={{ background: '#111827', color: '#fff', padding: '16px', borderRadius: '8px', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div>
-            <label style={{ fontSize: '0.8rem', display: 'block', color: '#9CA3AF' }}>Modo Escáner:</label>
-            <select 
-              value={modoEscaner} 
-              onChange={(e) => {
-                setModoEscaner(e.target.value as 'general' | 'salon');
-                setPaginaActual(1);
-              }}
-              style={{ padding: '8px', borderRadius: '4px', background: '#1F2937', color: '#fff', border: '1px solid #374151', cursor: 'pointer' }}
-            >
-              <option value="general">1. Entrada General</option>
-              <option value="salon">2. Entrada a Salón</option>
-            </select>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ fontSize: '0.9rem', color: '#10B981', fontWeight: 'bold' }}>
+            ⚡ Lector QR Automático Activo para el DÍA {diaSeleccionado}: 1º Escaneo = General | 2º Escaneo = Salón
           </div>
-
-          {modoEscaner === 'salon' && (
-            <div>
-              <label style={{ fontSize: '0.8rem', display: 'block', color: '#9CA3AF' }}>Salón que estás controlando:</label>
-              <select 
-                value={salaEscaner} 
-                onChange={(e) => {
-                  setSalaEscaner(e.target.value);
-                  setPaginaActual(1);
-                }}
-                style={{ padding: '8px', borderRadius: '4px', background: '#1F2937', color: '#fff', border: '1px solid #374151', cursor: 'pointer' }}
-              >
-                <option value="Lemont">Lemont</option>
-                <option value="Concorde">Concorde</option>
-                <option value="Vendome">Vendome</option>
-                <option value="Louvre">Louvre</option>
-              </select>
-            </div>
-          )}
 
           <input
             ref={inputEscanerRef}
             type="text"
-            disabled={procesandoLectura}
+            autoFocus
             value={codigoLeido}
             onChange={(e) => setCodigoLeido(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
+                e.preventDefault();
                 procesarEscaneoQR(codigoLeido);
               }
             }}
             style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
           />
-
-          <div style={{ fontSize: '0.85rem', color: '#10B981', fontWeight: 'bold' }}>
-            Puedes usar la tabla manual en cualquier momento
-          </div>
         </div>
 
         {mensajeEscaner && (
@@ -514,7 +504,7 @@ export default function TablaAsistencia() {
       <div className={styles.actionsBar}>
         <SwitchDias 
           diaSeleccionado={diaSeleccionado} 
-          onCambiarDia={resetearPaginacionYCambiarDia} 
+          onCambiarDia={cambiarDia} 
           etiquetaDia1="20 de Octubre"
           etiquetaDia2="21 de Octubre"
         />
@@ -564,9 +554,9 @@ export default function TablaAsistencia() {
             <div>Facultad</div>
             <div>Rol</div>
             <div>Salón</div>
-            <div style={{ textAlign: 'center' }}>Asist. Evento</div>
+            <div style={{ textAlign: 'center' }}>Asist. Evento (Día {diaSeleccionado})</div>
             <div style={{ textAlign: 'center' }}>Salida Evento</div>
-            <div style={{ textAlign: 'center' }}>Asist. Salón</div>
+            <div style={{ textAlign: 'center' }}>Asist. Salón (Día {diaSeleccionado})</div>
             <div style={{ textAlign: 'center' }}>Salida Salón</div>
           </div> 
 
@@ -575,11 +565,12 @@ export default function TablaAsistencia() {
               <div className={styles.emptyState}>Cargando datos de asistentes...</div>
             ) : registrosVisuales.length > 0 ? (
               registrosVisuales.map((usuario) => {
-                const asistencia = diaSeleccionado === 1 ? usuario.asistencia_dia_1 : usuario.asistencia_dia_2;
-                const horaSalida = diaSeleccionado === 1 ? usuario.hora_salida_dia_1 : usuario.hora_salida_dia_2;
+                const asistencia = diaSeleccionado === 2 ? usuario.asistencia_dia_2 : usuario.asistencia_dia_1;
+                const horaSalida = diaSeleccionado === 2 ? usuario.hora_salida_dia_2 : usuario.hora_salida_dia_1;
 
-                const asistenciaSala = diaSeleccionado === 1 ? usuario.asistencia_sala_dia_1 : usuario.asistencia_sala_dia_2;
-                const horaSalidaSala = diaSeleccionado === 1 ? usuario.hora_salida_sala_dia_1 : usuario.hora_salida_sala_dia_2;
+                // CORRECCIÓN APLICADA AQUÍ:
+                const asistenciaSala = diaSeleccionado === 2 ? usuario.asistencia_sala_dia_2 : usuario.asistencia_sala_dia_1;
+                const horaSalidaSala = diaSeleccionado === 2 ? usuario.hora_salida_sala_dia_2 : usuario.hora_salida_sala_dia_1;
 
                 const minutosFueraSalon = horaSalidaSala ? calcularMinutosTranscurridos(horaSalidaSala) : 0;
                 const esIncompletaSalon = horaSalidaSala !== null && minutosFueraSalon > 30;
@@ -606,8 +597,8 @@ export default function TablaAsistencia() {
                     <div className={styles.centerCell} style={{ display: 'flex', justifyContent: 'center' }}>
                       <Switch
                         disabled={!edicionHabilitada}
-                        checked={!!asistencia}
-                        onChange={() => manejarCambioAsistencia(usuario.id, !!asistencia)}
+                        checked={Boolean(asistencia)}
+                        onChange={() => manejarCambioAsistencia(usuario.id, Boolean(asistencia))}
                         sx={{
                           '& .MuiSwitch-switchBase.MuiChecked': { color: '#0CE816' },
                           '& .MuiSwitch-switchBase.MuiChecked + .MuiSwitch-track': { backgroundColor: '#0CE816' },
@@ -645,8 +636,8 @@ export default function TablaAsistencia() {
                     <div className={styles.centerCell} style={{ display: 'flex', justifyContent: 'center' }}>
                       <Switch
                         disabled={!edicionHabilitada}
-                        checked={!!asistenciaSala}
-                        onChange={() => manejarCambioAsistenciaSala(usuario.id, !!asistenciaSala)}
+                        checked={Boolean(asistenciaSala)}
+                        onChange={() => manejarCambioAsistenciaSala(usuario.id, Boolean(asistenciaSala))}
                         sx={{
                           '& .MuiSwitch-switchBase.MuiChecked': { color: '#0070F3' },
                           '& .MuiSwitch-switchBase.MuiChecked + .MuiSwitch-track': { backgroundColor: '#0070F3' },
@@ -737,7 +728,7 @@ export default function TablaAsistencia() {
               {edicionHabilitada ? `Bloquear Día ${diaSeleccionado}` : `Desbloquear Día ${diaSeleccionado}`}
             </h3>
             <p style={{ fontSize: '0.875rem', color: '#666', marginBottom: '16px' }}>
-              Ingresa la contraseña maestra para cambiar el estado de edición:
+              Ingresa la contraseña maestra para cambiar el estado de edición del Día {diaSeleccionado}:
             </p>
             
             <input 

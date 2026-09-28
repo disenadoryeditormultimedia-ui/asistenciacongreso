@@ -9,7 +9,6 @@ import SwitchDias from '@/app/ui/SwitchDias/SwitchDias';
 import SearchInput from '@/app/ui/SearchInput/SearchInput';
 import Select from '@/app/ui/Select/Select';
 import TabsFiltro from '@/app/ui/TabsFiltro/TabsFiltro';
-import Paginacion from '@/app/ui/Paginacion/Paginacion';
 import Modal from '@/app/ui/Modal/Modal';
 
 interface Usuario {
@@ -55,9 +54,6 @@ export default function TablaAsistencia() {
   const [salaFiltro, setSalaFiltro] = useState<string>('todas');
   const [statusFiltro, setStatusFiltro] = useState<string>('todos');
   const [busqueda, setBusqueda] = useState<string>('');
-  
-  const [paginaActual, setPaginaActual] = useState<number>(1);
-  const elementosPorPagina = 5;
 
   const [modalAbierto, setModalAbierto] = useState<boolean>(false);
   const [cambioPendiente, setCambioPendiente] = useState<{ id: string; campo: string; nuevoValor: string | null } | null>(null);
@@ -83,7 +79,6 @@ export default function TablaAsistencia() {
     diaSeleccionadoRef.current = nuevoDia;
     setDiaSeleccionado(nuevoDia);
     localStorage.setItem('dia_seleccionado_asistencia', String(nuevoDia));
-    setPaginaActual(1);
   };
 
   const obtenerSalonUsuario = (usuario: Usuario): string => {
@@ -251,7 +246,7 @@ export default function TablaAsistencia() {
 
         if (errUpdate) throw errUpdate;
 
-        // ⚡ RECARGAR DESDE BASE DE DATOS PARA RE-RENDERIZAR SWITCHES INMEDIATAMENTE
+        // ⚡ RECARGAR DESDE BASE DE DATOS
         await cargarUsuarios();
 
         setMensajeEscaner({
@@ -268,7 +263,7 @@ export default function TablaAsistencia() {
 
         if (errUpdate) throw errUpdate;
 
-        // ⚡ RECARGAR DESDE BASE DE DATOS PARA RE-RENDERIZAR SWITCHES INMEDIATAMENTE
+        // ⚡ RECARGAR DESDE BASE DE DATOS
         await cargarUsuarios();
 
         setMensajeEscaner({
@@ -411,6 +406,7 @@ export default function TablaAsistencia() {
     setCambioPendiente(null);
   };
 
+  // Filtrado de usuarios (sin paginación)
   const usuariosFiltrados = usuarios.filter((usuario) => {
     const asistencia = diaSeleccionado === 2 ? usuario.asistencia_dia_2 : usuario.asistencia_dia_1;
     const pasaFacultad = salaFiltro === 'todas' || usuario.facultad === salaFiltro;
@@ -431,10 +427,6 @@ export default function TablaAsistencia() {
 
     return pasaFacultad && pasaStatus && (nombreMatch || facultadMatch || rolMatch);
   });
-
-  const indiceUltimoItem = paginaActual * elementosPorPagina;
-  const indicePrimerItem = indiceUltimoItem - elementosPorPagina;
-  const registrosVisuales = usuariosFiltrados.slice(indicePrimerItem, indiceUltimoItem);
 
   const edicionHabilitada = esEdicionPermitida(diaSeleccionado);
 
@@ -510,11 +502,11 @@ export default function TablaAsistencia() {
         />
 
         <div className={styles.filtersGroup}>
-          <SearchInput value={busqueda} onChange={(val) => { setBusqueda(val); setPaginaActual(1); }} placeholder="Buscar asistente..." />
+          <SearchInput value={busqueda} onChange={(val) => setBusqueda(val)} placeholder="Buscar asistente..." />
           
           <Select 
             value={salaFiltro} 
-            onChange={(val) => { setSalaFiltro(val); setPaginaActual(1); }} 
+            onChange={(val) => setSalaFiltro(val)} 
             options={[
               { value: 'todas', label: 'Todas las Facultades' },
               { value: 'FCEAN', label: 'Facultad de Ciencias Económico Administrativas y Negocios (FCEAN)' },
@@ -527,7 +519,7 @@ export default function TablaAsistencia() {
 
           <TabsFiltro 
             selectedId={statusFiltro}
-            onChange={(val) => { setStatusFiltro(val); setPaginaActual(1); }}
+            onChange={(val) => setStatusFiltro(val)}
             options={[
               { id: 'todos', label: 'Todos' },
               { id: 'presente', label: 'Presentes' },
@@ -537,7 +529,7 @@ export default function TablaAsistencia() {
         </div>
       </div>
 
-      {/* Tabla de Asistencia Manual */}
+      {/* Tabla de Asistencia Completa */}
       <div className={styles.tableResponsiveWrapper} style={{ overflowX: 'auto', width: '100%' }}>
         <div style={{ minWidth: '1000px' }}>
           
@@ -550,7 +542,7 @@ export default function TablaAsistencia() {
               alignItems: 'center'
             }}
           >
-            <div>Nombre</div>
+            <div>Nombre ({usuariosFiltrados.length})</div>
             <div>Facultad</div>
             <div>Rol</div>
             <div>Salón</div>
@@ -560,15 +552,15 @@ export default function TablaAsistencia() {
             <div style={{ textAlign: 'center' }}>Salida Salón</div>
           </div> 
 
-          <div className={styles.tableBodyFixed}>
+          {/* Lista completa con scroll vertical de máximo 65vh */}
+          <div className={styles.tableBodyFixed} style={{ maxHeight: '65vh', overflowY: 'auto' }}>
             {loading ? (
               <div className={styles.emptyState}>Cargando datos de asistentes...</div>
-            ) : registrosVisuales.length > 0 ? (
-              registrosVisuales.map((usuario) => {
+            ) : usuariosFiltrados.length > 0 ? (
+              usuariosFiltrados.map((usuario) => {
                 const asistencia = diaSeleccionado === 2 ? usuario.asistencia_dia_2 : usuario.asistencia_dia_1;
                 const horaSalida = diaSeleccionado === 2 ? usuario.hora_salida_dia_2 : usuario.hora_salida_dia_1;
 
-                // CORRECCIÓN APLICADA AQUÍ:
                 const asistenciaSala = diaSeleccionado === 2 ? usuario.asistencia_sala_dia_2 : usuario.asistencia_sala_dia_1;
                 const horaSalidaSala = diaSeleccionado === 2 ? usuario.hora_salida_sala_dia_2 : usuario.hora_salida_sala_dia_1;
 
@@ -687,13 +679,6 @@ export default function TablaAsistencia() {
           </div>
         </div>
       </div>
-
-      <Paginacion 
-        paginaActual={paginaActual}
-        totalElementos={usuariosFiltrados.length}
-        elementosPorPagina={elementosPorPagina}
-        onCambiarPagina={setPaginaActual}
-      />
 
       <Modal 
         isOpen={modalAbierto}
